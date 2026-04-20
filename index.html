@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz App with Dynamic Certificate</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url('https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&w=1400&q=80')
+        no-repeat center center/cover;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 28px;
+      color: white;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      text-align: center;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #007bff;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .optionBtn {
+      background: rgba(255, 255, 255, 0.95);
+      color: #222;
+      margin: 8px 0;
+    }
+
+    .optionBtn:hover {
+      background: #4caf50;
+      color: white;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #question {
+      font-size: 20px;
+      margin: 18px 0;
+      line-height: 1.4;
+    }
+
+    #progress, #timeText {
+      font-weight: bold;
+    }
+
+    #timerBar {
+      width: 100%;
+      height: 12px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 18px;
+    }
+
+    #timerFill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(to right, #ff6b6b, #ff1e1e);
+      transition: width 1s linear;
+    }
+
+    #certificateBox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .certificate {
+      width: 100%;
+      max-width: 900px;
+      margin: 30px auto;
+      background: linear-gradient(135deg, #fff9e6, #ffffff);
+      border: 8px solid #d4af37;
+      border-radius: 24px;
+      color: #222;
+      text-align: center;
+      padding: 50px 30px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    }
+
+    .certificate h1 {
+      font-size: 42px;
+      color: #8b5e00;
+      margin-bottom: 10px;
+    }
+
+    .certificate h2 {
+      font-size: 24px;
+      margin: 12px 0;
+    }
+
+    .certificate .name {
+      font-size: 46px;
+      color: #0056b3;
+      font-weight: bold;
+      margin: 18px 0;
+      text-transform: capitalize;
+    }
+
+    .certificate .detail {
+      font-size: 21px;
+      margin: 10px 0;
+    }
+
+    .certificate .footer {
+      margin-top: 35px;
+      font-size: 16px;
+      color: #555;
+    }
+
+    .cert-actions {
+      max-width: 900px;
+      margin: 10px auto 30px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .green-btn {
+      background: #1f9d55;
+    }
+
+    .green-btn:hover {
+      background: #157347;
+    }
+
+    .red-btn {
+      background: #c62828;
+    }
+
+    .red-btn:hover {
+      background: #8e1d1d;
+    }
+
+    @media (max-width: 600px) {
+      .certificate h1 {
+        font-size: 30px;
+      }
+
+      .certificate .name {
+        font-size: 34px;
+      }
+
+      .certificate .detail {
+        font-size: 18px;
+      }
+
+      .cert-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div id="welcome">
+      <h2>✨ Quiz Application</h2>
+
+      <input type="text" id="username" placeholder="Enter your name" />
+
+      <select id="subject">
+        <option value="">-- Select Subject --</option>
+        <option value="programming">Programming</option>
+        <option value="html">HTML</option>
+        <option value="css">CSS</option>
+      </select>
+
+      <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quiz" class="hidden">
+      <h3 id="progress"></h3>
+      <p id="question"></p>
+
+      <h3 id="timeText"></h3>
+      <div id="timerBar">
+        <div id="timerFill"></div>
+      </div>
+
+      <div id="options"></div>
+    </div>
+
+    <div id="result" class="hidden">
+      <h2>🎉 Quiz Completed</h2>
+      <p><strong>Name:</strong> <span id="resultName"></span></p>
+      <p><strong>Subject:</strong> <span id="resultSubject"></span></p>
+      <p><strong>Score:</strong> <span id="finalScore"></span> / 5</p>
+      <button onclick="showCertificate()">Get Certificate</button>
+      <button onclick="restartQuiz()">Restart Quiz</button>
+    </div>
+  </div>
+
+  <div id="certificateBox">
+    <div class="certificate" id="certificateContent">
+      <h1>Certificate of Achievement</h1>
+      <h2>This certificate is proudly presented to</h2>
+
+      <div class="name" id="certName"></div>
+
+      <p class="detail">For successfully completing the quiz on</p>
+      <p class="detail"><strong id="certSubject"></strong></p>
+      <p class="detail">with a score of <strong id="certScore"></strong></p>
+      <p class="detail">Date: <strong id="certDate"></strong></p>
+
+      <div class="footer">
+        Keep learning and keep growing 🌟
+      </div>
+    </div>
+
+    <div class="cert-actions">
+      <button class="green-btn" onclick="downloadCertificate()">Download Certificate</button>
+      <button class="red-btn" onclick="closeCertificate()">Close</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    const questionBank = {
+      programming: [
+        {
+          question: "Which language is used for Android app development?",
+          options: ["Java", "Python", "HTML", "C"],
+          answer: "Java"
+        },
+        {
+          question: "Which keyword is used to define a class in Java?",
+          options: ["def", "class", "struct", "new"],
+          answer: "class"
+        },
+        {
+          question: "Which of the following is NOT a programming language?",
+          options: ["Python", "Java", "HTML", "C++"],
+          answer: "HTML"
+        },
+        {
+          question: "Which symbol is used for single-line comments in Java?",
+          options: ["//", "#", "<!--", "/* */"],
+          answer: "//"
+        },
+        {
+          question: "What does CPU stand for?",
+          options: ["Central Processing Unit", "Computer Personal Unit", "Central Program Unit", "Control Processing Unit"],
+          answer: "Central Processing Unit"
+        },
+        {
+          question: "Which keyword is used to create an object in Java?",
+          options: ["make", "new", "object", "create"],
+          answer: "new"
+        },
+        {
+          question: "Java is a ___ language.",
+          options: ["Markup", "Programming", "Styling", "Query"],
+          answer: "Programming"
+        }
+      ],
+
+      html: [
+        {
+          question: "HTML stands for?",
+          options: ["Hyper Text Markup Language", "High Text Machine Language", "Hyper Transfer Markup Language", "Home Tool Markup Language"],
+          answer: "Hyper Text Markup Language"
+        },
+        {
+          question: "Which tag is used to display an image?",
+          options: ["<image>", "<img>", "<src>", "<picture>"],
+          answer: "<img>"
+        },
+        {
+          question: "Which tag is used for line break?",
+          options: ["<break>", "<lb>", "<br>", "<line>"],
+          answer: "<br>"
+        },
+        {
+          question: "Who invented HTML?",
+          options: ["Tim Berners-Lee", "James Gosling", "Dennis Ritchie", "Guido van Rossum"],
+          answer: "Tim Berners-Lee"
+        },
+        {
+          question: "Which tag defines a paragraph?",
+          options: ["<para>", "<text>", "<p>", "<pg>"],
+          answer: "<p>"
+        },
+        {
+          question: "Which tag is used for hyperlink?",
+          options: ["<a>", "<link>", "<href>", "<url>"],
+          answer: "<a>"
+        },
+        {
+          question: "HTML is used to create ___ of a webpage.",
+          options: ["style", "structure", "database", "animation"],
+          answer: "structure"
+        }
+      ],
+
+      css: [
+        {
+          question: "CSS stands for?",
+          options: ["Cascading Style Sheets", "Creative Style Sheets", "Computer Style Syntax", "Colorful Style System"],
+          answer: "Cascading Style Sheets"
+        },
+        {
+          question: "Which property controls text size?",
+          options: ["font-size", "text-size", "font-style", "size"],
+          answer: "font-size"
+        },
+        {
+          question: "Which symbol is used for ID selector in CSS?",
+          options: ["#", ".", "*", "$"],
+          answer: "#"
+        },
+        {
+          question: "Which property makes text bold?",
+          options: ["text-bold", "bold", "font-weight", "font-style"],
+          answer: "font-weight"
+        },
+        {
+          question: "Which property changes background color?",
+          options: ["bgcolor", "background-style", "background-color", "color-background"],
+          answer: "background-color"
+        },
+        {
+          question: "Which symbol is used for class selector?",
+          options: ["#", ".", "&", "*"],
+          answer: "."
+        },
+        {
+          question: "CSS is used for ___ webpage.",
+          options: ["structuring", "styling", "querying", "compiling"],
+          answer: "styling"
+        }
+      ]
+    };
+
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 30;
+    let userName = "";
+    let currentSubject = "";
+
+    function getRandomQuestions(subject) {
+      const shuffled = [...questionBank[subject]].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, 5);
+    }
+
+    function startQuiz() {
+      const nameInput = document.getElementById("username").value.trim();
+      const subjectInput = document.getElementById("subject").value;
+
+      if (!nameInput) {
+        alert("Please enter your name.");
+        return;
+      }
+
+      if (!subjectInput) {
+        alert("Please select a subject.");
+        return;
+      }
+
+      userName = nameInput;
+      currentSubject = subjectInput;
+      currentQuestions = getRandomQuestions(subjectInput);
+      currentIndex = 0;
+      score = 0;
+
+      document.getElementById("welcome").classList.add("hidden");
+      document.getElementById("result").classList.add("hidden");
+      document.getElementById("quiz").classList.remove("hidden");
+
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      clearInterval(timer);
+      timeLeft = 30;
+
+      const questionObj = currentQuestions[currentIndex];
+      document.getElementById("progress").innerText = `Question ${currentIndex + 1} of 5`;
+      document.getElementById("question").innerText = questionObj.question;
+      document.getElementById("timeText").innerText = `⏳ Time Left: ${timeLeft}s`;
+      document.getElementById("timerFill").style.width = "100%";
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      questionObj.options.forEach(option => {
+        const button = document.createElement("button");
+        button.innerText = option;
+        button.className = "optionBtn";
+        button.onclick = () => checkAnswer(option);
+        optionsDiv.appendChild(button);
+      });
+
+      startTimer();
+    }
+
+    function startTimer() {
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timeText").innerText = `⏳ Time Left: ${timeLeft}s`;
+        document.getElementById("timerFill").style.width = (timeLeft / 30) * 100 + "%";
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          goToNextQuestion();
+        }
+      }, 1000);
+    }
+
+    function checkAnswer(selectedOption) {
+      clearInterval(timer);
+
+      if (selectedOption === currentQuestions[currentIndex].answer) {
+        score++;
+      }
+
+      goToNextQuestion();
+    }
+
+    function goToNextQuestion() {
+      currentIndex++;
+
+      if (currentIndex < currentQuestions.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      clearInterval(timer);
+
+      document.getElementById("quiz").classList.add("hidden");
+      document.getElementById("result").classList.remove("hidden");
+
+      document.getElementById("resultName").innerText = userName;
+      document.getElementById("resultSubject").innerText = currentSubject.toUpperCase();
+      document.getElementById("finalScore").innerText = score;
+    }
+
+    function showCertificate() {
+      document.getElementById("certName").innerText = userName;
+      document.getElementById("certSubject").innerText = currentSubject.toUpperCase();
+      document.getElementById("certScore").innerText = `${score} / 5`;
+      document.getElementById("certDate").innerText = new Date().toLocaleDateString();
+
+      document.getElementById("certificateBox").style.display = "block";
+    }
+
+    function closeCertificate() {
+      document.getElementById("certificateBox").style.display = "none";
+    }
+
+    async function downloadCertificate() {
+      const { jsPDF } = window.jspdf;
+      const certificate = document.getElementById("certificateContent");
+
+      const canvas = await html2canvas(certificate, {
+        scale: 2
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("landscape", "mm", "a4");
+
+      pdf.addImage(imgData, "PNG", 10, 10, 277, 190);
+      pdf.save(`${userName}_Certificate.pdf`);
+    }
+
+    function restartQuiz() {
+      location.reload();
+    }
+  </script>
+</body>
+</html>
